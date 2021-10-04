@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>钉钉</title>
+  <script src="./js/vue.min.js"></script>
+  <script src="./js/axios.min.js"></script>
+  <script src="./js/moment.min.js"></script>
+  <style>
+    /* @font-face {
+      src: url("./font/PingFang-SC-Regular.ttf");
+      font-family: "PingFang";
+    } */
+    /* *{
+      font-family: PingFang,monospace;
+    } */
+    body,html{
+      margin:0;
+      padding:0;
+      background-color:#f9f9f9;
+    }
+    div,span{
+      color:#777;
+    }
+    .header span,.header  div{
+      color:black;
+    }
+    .header {
+      width:100%;
+      height: 3rem;
+      background-color:white;
+      position: fixed;
+      z-index: 99;
+    }
+    .header .name{
+      color: black;
+    }
+    .header .headerContent{
+      width:93%;
+      margin:0 auto;
+      padding-top: 1rem;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .header .headerContent .back{
+      width: 15%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header .headerContent .back .goBack{
+      width: 0.6rem;
+      height: 1.5rem;
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    .header .headerContent .back .close{
+      width: 1rem;
+      height: 1.5rem;
+      background-position: center;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+    .header .details{
+      font-weight:600;
+      font-size: 1.1rem;
+      transform:translateX(-40%)
+    }
+    .selfInfo{
+      width:100%;
+      height: 7rem;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 2rem;
+    }
+    .selfInfo .content{
+      width:93%;
+      display: flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:flex-start;
+      margin-top: 10px;
+    }
+    .selfInfo .content .name,.selfInfo .content .name span{
+      color: black;
+      font-size: 1.3rem;
+      /* font-weight: bold; */
+    }
+    .selfInfo .schoolName{
+      margin: 0.4rem 0 0.5rem 0;
+      font-size:0.82rem;
+      color: #999;
+      display: flex;
+      justify-content: center;
+      align-content: flex-start;
+    }
+    .selfInfo .content .schoolName .icon{
+      width: 1rem;
+      height: 1rem;
+      margin: 0 0.3rem 0 0;
+      background-repeat: no-repeat;
+      background-size: contain;
+      transform: translateY(10%);
+    }
+
+    .passImg{
+      width: 100%;
+      height: 0;
+      position: relative;
+    }
+    .passImg .img{
+      width: 5rem;
+      height: 5rem;
+      position: relative;
+      float: right;
+      right: 2rem;
+      top:-2.5rem;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+    .examine{
+      border-radius: 0.7rem;
+      background-color:white;
+      width: 87%;
+      margin:0.9rem auto 0.9rem auto;
+      padding:1rem 1rem 2rem 1rem;
+    }
+    .examine .num{
+      height: 4rem;
+    }
+    .examine .num .content{
+      color:black;
+      margin: 0.25rem 0 0 0;
+      font-weight: 500;
+      /* font-family:  "微软雅黑",serif; */
+    }
+    .examine .num .subTitle{
+      font-size: 0.9rem;
+    }
+    .flow .cardTitle{
+      color: black;
+      /* font-weight: bold; */
+      height: 2.3rem;
+      font-size: 1.1rem;
+    }
+    .flow .nameContent{
+      display: flex;
+      justify-content: flex-start;
+      align-items:center;
+    }
+    .flow .nameContent .mainName{
+      background-color: rgb(51, 150, 251);
+      border-radius: 15%;
+      width:3rem;
+      height: 3rem;
+      display: flex;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      text-align: center;
+      margin-right: 1rem;
+      position: relative;
+    }
+    .flow .nameContent .mainName .yes{
+      position: absolute;
+      bottom: -5%;
+      right: -12%;
+      height: 1.2rem;
+      width: 1.2rem;
+    }
+    .flow .nameContent .right{
+      height: 3.2rem;
+      width: 80%;
+    }
+    .flow .nameContent .right .subTitle{
+      display: flex;
+      justify-content:space-between;
+    }
+    .flow .nameContent .right .subTitle .title{
+      /* font-weight: bold; */
+      color: black;
+      margin-bottom: 0.4rem;
+    }
+    .flow .nameContent .right .subTitle .time{
+      /* font-family:  "微软雅黑",serif; */
+      color: rgb(193, 194, 196);
+      font-size: .8rem;
+    }
+    .fotterButton{
+      width:100%;
+      position: fixed;
+      bottom:0;
+      display: flex;
+      justify-content:space-between;
+      align-items:center;
+      background-color: white;
+      height: 3.5rem;
+      border-top: 1px solid #e9e9e9;
+    }
+    .fotterButton .list{
+      width:33%;
+      display: flex;
+      flex-direction: column;
+      justify-content:center;
+      align-items:center;
+    }
+    .fotterButton .img{
+      width: 1.4rem;
+      height: 1.4rem;
+      background-repeat: no-repeat;
+      background-size: contain;
+    }
+    .fotterButton .list div:last-child{
+      margin-top:0.15rem;
+      font-size: 0.7rem;
+    }
+    .fixed{
+      width: 100%;
+      height: 0;
+    }
+    .fixed .imgContent{
+      width: 1.8rem;
+      height: 1.8rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: fixed;
+      right: 1rem;
+      top: 85%;
+      border-radius: 50%;
+      background-color: white;
+      box-shadow: 0px 3px 3px #999;
+    }
+    .fixed .imgContent .img{
+      width: 80%;
+      height: 80%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      background-position: center;
+    }
+    /* 竖线 */
+    .line {
+      width: 3px;
+      height: 40px;
+      background-color: rgb(227, 229, 228);
+      margin: 5px 0;
+      margin-left: 22px;
+    }
+    /* 指标速度 */
+    .indicator {
+      color: rgb(153, 153, 153);
+      margin: 2rem 0;
+      margin-bottom: 5.5rem;
+      display: flex;
+      justify-content: center;
+      /* align-items: center; */
+    }
+    .indicator img {
+      width: 1.1rem;
+      height: 1.1rem;
+      margin-right: 5px;
+    }
+    .indicator div {
+      width: 12rem;
+      text-align: center;
+      color: rgb(154, 154, 154);
+      font-size: .8rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="header">
+      <div class="headerContent">
+        <div class="back">
+          <span @click="goback()" class="goBack" style="background-image: url('./images/goBack.png')"></span>
+          <span @click="goback()"></span>
+          <span class="close" style="background-image: url('./images/close.png')"></span>
+        </div>
+        <div class="details">详情</div>
+        <div>更多</div>
+      </div>
+    </div>
+    <div class="selfInfo">
+      <div class="content">
+        <div class="name">{{form.name}}<span>提交的离校报备</span></div>
+        <div class="schoolName"><div class="icon" style="background-image: url('./images/school.png')"></div><div>西南科技大学城市学院</div></div>
+        <div class="pass">审批通过</div>
+      </div>
+    </div>
+    <div class="passImg">
+      <div class="img" style="background-image: url('./images/success.png')"></div>
+    </div>
+    <div class="examine" style="padding-bottom: 1rem!important;">
+      <div class="num">
+        <div class="subTitle">审批编号</div>
+        <div class="content">{{request_code}}</div>
+      </div>
+      <div class="num">
+        <div class="subTitle">所在部门</div>
+        <div class="content">{{form.department}}</div>
+      </div>
+      <div class="num">
+        <div class="subTitle">离校时间</div>
+        <div class="content">{{form.start_time}}</div>
+      </div>
+      <div class="num">
+        <div class="subTitle">返校时间</div>
+        <div class="content">{{form.end_time}}</div>
+      </div>
+      <div class="num">
+        <div class="subTitle">事由</div>
+        <div class="content">{{form.particulars}}</div>
+      </div>
+      <div class="num">
+        <div class="subTitle">目的地</div>
+        <div class="content">{{form.destination}}</div>
+      </div>
+    </div>
+    <div class="flow examine">
+      <div class="cardTitle">流程</div>
+      <div class="nameContent">
+        <div class="mainName">{{nameFn(form.name)}}
+          <img class="yes" src="./images/yes.png">
+        </div>
+        <div class="right">
+          <div class="subTitle">
+            <div class="title">发起申请</div>
+            <div class="time">{{toDay()}} {{form.request_start_time}}</div>
+          </div>
+          <div class="name">我</div>
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="nameContent">
+        <div class="mainName">
+          {{nameFn(form.instructor)}}
+          <img class="yes" src="./images/yes.png">
+        </div>
+        <div class="right">
+          <div class="subTitle">
+            <div class="title">辅导员</div>
+            <div class="time">{{toDay()}} {{form.request_end_time}}</div>
+          </div>
+          <div class="name">{{form.instructor}}（已同意）</div>
+        </div>
+      </div>
+    </div>
+    <div class="indicator">
+      <img src="./images/indicator.png" alt="">
+      <div>共耗时13分钟40秒,比82%的同类申请快</div>
+    </div>
+    <div class="fotterButton">
+      <div class="list">
+        <div class="img" style="background-image: url('./images/edit.png')"></div>
+        <div>修改</div>
+      </div>
+      <div class="list">
+        <div class="img" style="background-image: url('./images/bottom1.png')"></div>
+        <div>评论</div>
+      </div>
+      <div class="list">
+        <div class="img" style="background-image: url('./images/bottom2.png')"></div>
+        <div>发起讨论</div>
+      </div>
+      <div class="list">
+        <div class="img" style="background-image: url('./images/more.png')"></div>
+        <div>更多</div>
+      </div>
+    </div>
+    <div class="fixed">
+      <div class="imgContent">
+        <div class="img" style="background-image: url('./images/fixed.png')"></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    new Vue({
+      el:"#app",
+      data(){
+        return {
+          request_code:moment(new Date()).format('YYYYMMDDHHmmss')+parseInt(Math.random()*1000000,10),
+          form:{
+            name:'',
+            student_id:'',
+            department:'',
+            start_time:'',
+            end_time:'',
+            particulars:'',
+            destination:'',
+            instrucor:'',
+            request_end_time:'',
+            request_start_time:''
+          }
+        }
+      },
+      async beforeCreate(){
+        function getQueryVariable(variable) {
+          let query = window.location.search.substring(1);
+          let vars = query.split("&");
+          for (let i=0;i<vars.length;i++) {
+            let pair = vars[i].split("=");
+            if(pair[0] === variable){return pair[1];}
+          }
+          return false;
+        }
+        let id = parseInt(getQueryVariable('id'));
+        if(!Number.isInteger(id))return;
+        let data = (await axios.get('/dingding?id='+id)).content
+        console.log(data);
+        this.form = data
+        for(const key in data){
+          if(!data[key]){
+            this.form = null
+            break;
+          }
+        }
+      },
+      methods:{
+        goback(){
+          window.location.href = './create_leave_request.html?v='+Math.random()
+        },
+        nameFn(name){
+          if(!name) return '';
+          if(name.length<=2){
+           name = name.substr(0,2)
+          }else{
+            name = name.substr(1,2)
+          }
+          return name
+        },
+        toDay(){
+          let month = new Date().getMonth()+1
+          let day = new Date().getDate()
+          let today = (month < 10 ? '0'+ month:month) +'.'+ (day<10?'0'+day:day)+' '
+          
+          return today
+        }
+      }
+    })
+  </script>
+</body>
+<script>
+  document.addEventListener('plusready', function (a) {
+      var first = null;
+      plus.key.addEventListener('backbutton', function () {
+          //首次按键，提示‘再按一次退出应用’
+          window.location.href = './create_leave_request.html?v='+Math.random()
+      }, false);
+  });
+</script>
+</html>

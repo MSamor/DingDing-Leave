@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="./js/vant.css" />
+    <script src="./js/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
+    <script src="./js/axios.min.js"></script>
+    <script src="./js/moment.min.js"></script>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>创建离校请假条</title>
+</head>
+
+<body>
+    <div id="app"></div>
+    <script>
+        new Vue({
+            el: "#app",
+            template: `
+<div>
+    <div class="data">
+    <van-nav-bar
+      title="科技强国"
+    />    
+    <van-overlay :show="show">
+        <div class="wrapper" >
+            <div><van-loading /></div>
+            <div>加载中…</div>
+        </div>
+    </van-overlay>
+
+    <van-form @submit="onSubmit(form)">
+        <div
+          v-for="(ix,item) in zh_hans"
+          :key="ix">
+                <van-field
+                    v-model="form[ix]"
+                    @focusout="ix.includes('start_time')&&changeTime()"
+                    :name="item"
+                    :label="item"
+                    :placeholder="item"
+                    :rules="[{ required: true, message: '请填写'+item }]">
+                </van-field>
+        </div>
+        <div style="margin: 16px;">
+        <van-button round block type="info" :disabled="disabled" native-type="submit">我已熟记</van-button>
+        </div>
+    </van-form>
+
+    <div class="info">
+    <div><span style="color: red">请熟记社会主义核心价值观：<br/>富强、民主、文明、和谐<br/>自由、平等、公正、法治<br/>爱国、敬业、诚信、友善</span></div>
+    </div>
+
+    </div>
+</div>`,
+            data() {
+                let zh_hans = {
+                    '姓名': 'name',
+                    '学号': 'student_id',
+                    '学院部门班级': 'department',
+                    '离校时间': 'start_time',
+                    '返校时间': 'end_time',
+                    '发起审批时间': 'request_start_time',
+                    '审批通过时间': 'request_end_time',
+                    '离校事由': 'particulars',
+                    '目的地': 'destination',
+                    '辅导员': 'instructor'
+                }
+                let form = {}
+                let form_time = {}
+                for (const key in zh_hans) {
+                    form[zh_hans[key]] = ''
+                }
+
+                form['start_time'] = moment().format("YYYY-MM-DD") + ' 08:00';
+                form_time['start_time'] = false
+                form['end_time'] = moment().format("YYYY-MM-DD") + ' 21:00';
+                form_time['end_time'] = false
+
+                form['request_start_time'] = '07:10';
+                form['request_end_time'] = '07:30';
+
+                form['department'] = `学生部门-鼎利学院-2018级-计算机B180${parseInt(7 * Math.random(), 10)+1}班`
+                let arr = ['买东西']
+                form['particulars'] = arr[Math.floor((Math.random() * arr.length))]
+                form['destination'] = '校外'
+                return {
+                    zh_hans: zh_hans,
+                    form: form,
+                    form_time: form_time,
+                    req: '',
+                    show: true,
+                    disabled:false
+                }
+            },
+            methods: {
+                onSubmit(values) {
+                    this.show = true
+                    axios({
+                        method: 'post',
+                        url: this.req + '/dingding',
+                        data: values
+                    }).then(res => {
+                        console.log(res)
+                        if (res.status === 200) {
+                            // this.show = false
+                            window.localStorage.setItem("id", res.content.id)
+                            window.location.href = './dingding_generate.html?id=' + res.content.id
+                        } else {
+                            vant.Dialog.alert({
+                                title: "提示",
+                                message: "加载失败，请重试……",
+                            }).then(() => {
+                                this.show = false
+                            });
+                        }
+                    })
+                },
+                changeTime(ix) {
+                    this.form['start_time'] = this.form['start_time'].replace(/：/g, ':')
+                    this.form['request_start_time'] = moment(this.form['start_time']).subtract(50, 'minute')
+                        .format('HH:mm')
+                    this.form['request_end_time'] = moment(this.form['start_time']).subtract(30, 'minute')
+                        .format('HH:mm')
+                }
+            },
+            created() {
+                axios({
+                    method: 'get',
+                    url: this.req + '/anno',
+                }).then(res => {
+                    this.show = false
+                    if(res.content[0].is_open == 0){
+                        this.disabled = true
+                    }
+                    vant.Dialog.alert({
+                        title: res.content[0].title,
+                        message: res.content[0].content,
+                    }).then(() => {
+                        // on close
+                    });
+                })
+
+                let id = window.localStorage.getItem("id")
+                if (id != null) {
+                    axios({
+                        method: 'get',
+                        url: this.req + '/dingding?id=' + id,
+                    }).then(res => {
+                        this.form.name = res.content.name
+                        this.form.student_id = res.content.student_id
+                        this.form.department = res.content.department
+                        this.form.particulars = res.content.particulars
+                        this.form.destination = res.content.destination
+                        this.form.instructor = res.content.instructor
+                    })
+                }
+
+            }
+        })
+    </script>
+    <style>
+        .wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: white;
+        }
+    </style>
+</body>
+
+<script>
+    document.addEventListener('plusready', function (a) {
+        var first = null;
+        plus.key.addEventListener('backbutton', function () {
+            //首次按键，提示‘再按一次退出应用’
+            if (!first) {
+                first = new Date().getTime();
+                console.log('再按一次退出应用'); //用自定义toast提示最好
+                vant.Toast('再按一次退出应用');
+                setTimeout(function () {
+                    first = null;
+                }, 1000);
+            } else {
+                if (new Date().getTime() - first < 1000) {
+                    plus.runtime.quit();
+                }
+            }
+        }, false);
+    });
+</script>
+</html>
