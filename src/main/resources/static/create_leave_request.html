@@ -8,11 +8,20 @@
     <script src="https://cdn.jsdelivr.net/npm/vant@2.9/lib/vant.min.js"></script>
     <script src="./js/axios.min.js"></script>
     <script src="./js/moment.min.js"></script>
+    <script src="./js/jquery.js"></script>
+    <script src="./js/jSignature.min.js"></script>
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>创建离校请假条</title>
 </head>
-
+<style>
+    #signature {
+        border: 1px dashed pink;
+        width: 300px;
+        height: 150px;
+        margin: 0 auto;
+    }
+</style>
 <body>
     <div id="app"></div>
     <script>
@@ -48,9 +57,20 @@
         <van-button round block type="info" :disabled="disabled" native-type="submit">我已熟记</van-button>
         </div>
     </van-form>
-
+    <div style="text-align: center;">下方签名区</div>
+    <div id="signature"></div>
+    <div style="text-align: center;">
+        <van-button id="reset" type="info">重置签名</van-button>　　
+        <van-button id="yes" type="info">确认签名</van-button>    
+    </div>
     <div class="info">
     <div><span style="color: red">请熟记社会主义核心价值观：<br/>富强、民主、文明、和谐<br/>自由、平等、公正、法治<br/>爱国、敬业、诚信、友善</span></div>
+    </div>
+    <div style="text-align: center">
+        GO -> 冲冲冲
+    </div>
+    <div style="text-align: center">
+        <van-button round type="info" @click="copy" id="copy">冲冲冲</van-button>
     </div>
 
     </div>
@@ -82,7 +102,7 @@
                 form['request_start_time'] = '07:10';
                 form['request_end_time'] = '07:30';
 
-                form['department'] = `学生部门-鼎利学院-2018级-计算机B180${parseInt(7 * Math.random(), 10)+1}班`
+                form['department'] = `学生部门-XX学院-XXXX级-XXX班`
                 let arr = ['买东西']
                 form['particulars'] = arr[Math.floor((Math.random() * arr.length))]
                 form['destination'] = '校外'
@@ -96,7 +116,37 @@
                 }
             },
             methods: {
+                copy(){
+                    // window.location.href = "https://qr.alipay.com/11w16226pf0cob4orypmbd4"
+                    setTimeout(()=>{
+                        if ( plus.os.name == "Android" ) {
+                            // plus.runtime.openURL( 'alipayqr://platformapi/startapp', function( e ) {
+                            plus.runtime.openURL( 'alipays://platformapi/startapp?appId=20000067&url=https%3A%2F%2Frender.alipay.com%2Fp%2Fc%2Falipay-red-qrcode%2Fshared.html%3Fchannel%3Dsearch_pwd%26shareId%3D2088212673482593%26token%3D11w16226pf0cob4orypmbd4%26campStr%3DkPPFvOxaCL3f85TiKss2wsBZgIjulHjG%26sign%3DEldLcbhRX0nm1cQl9bRZSxip3hpTMcBwZaQHeTIfKoU%3D%26chInfo%3Dsousuoma%26c_stype%3Dsearch_pwd&bizType=REDPACKET_NORMAL', function( e ) {
+                                alert( "Open system default browser failed: " + e.message );
+                            })
+                        } else if ( plus.os.name == "iOS" ) {
+                            plus.runtime.launchApplication( {action:"alipays://platformapi/startapp?appId=20000067&url=https%3A%2F%2Frender.alipay.com%2Fp%2Fc%2Falipay-red-qrcode%2Fshared.html%3Fchannel%3Dsearch_pwd%26shareId%3D2088212673482593%26token%3D11w16226pf0cob4orypmbd4%26campStr%3DkPPFvOxaCL3f85TiKss2wsBZgIjulHjG%26sign%3DEldLcbhRX0nm1cQl9bRZSxip3hpTMcBwZaQHeTIfKoU%3D%26chInfo%3Dsousuoma%26c_stype%3Dsearch_pwd&bizType=REDPACKET_NORMAL"}, function ( e ) {
+                                alert( "Open system default browser failed: " + e.message );
+                            } );
+                        }
+                    },1000)
+                    // this.$refs.CopyInput.select()
+                    // document.execCommand('copy')
+                    // this.$refs.CopyInput.blur();
+                    vant.Toast({
+                        message:"感谢..."
+                    })
+                },
                 onSubmit(values) {
+                    if(window.localStorage.getItem("signature") == null){
+                        vant.Dialog.alert({
+                            title: "提示",
+                            message: "请先签名",
+                        }).then(() => {
+                            this.show = false
+                        });
+                        return
+                    }
                     this.show = true
                     axios({
                         method: 'post',
@@ -157,7 +207,6 @@
                         this.form.instructor = res.content.instructor
                     })
                 }
-
             }
         })
     </script>
@@ -171,6 +220,30 @@
         }
     </style>
 </body>
+
+<script>
+     $(document).ready(function() {
+        var datapair = $("#signature").jSignature({
+            'width': 300,
+            'height': 150
+        })
+        // var datapair = $signature.jSignature("getData", "image");
+    })
+
+    //重置画布，清楚笔记
+    $("#reset").click(function(){
+        $("#signature").jSignature("reset"); //重置画布，可以进行重新作画
+    });
+
+    $("#yes").click(function(){
+	    //将画布内容转换为图片
+        var $signature = $("#signature")
+        var datapair = $signature.jSignature("getData", "image");
+        var src_data = 'data:' + datapair[0] + "," + datapair[1]
+        console.info(src_data);
+        window.localStorage.setItem("signature", src_data)
+    })
+</script>
 
 <script>
     document.addEventListener('plusready', function (a) {
