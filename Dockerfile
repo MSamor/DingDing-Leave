@@ -7,4 +7,4 @@ COPY ${JAR_FILE} /opt/app.jar
 # 启动容器时执行
 ENTRYPOINT ["java","-jar","/opt/app.jar"]
 # 挂载的端口
-EXPOSE 8080
+EXPOSE 7777
